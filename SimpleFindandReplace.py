@@ -1,0 +1,88 @@
+# A simple find and replace filter for mcedit
+# If there are any issues or enhancement requests please submit a bug report at:
+# https://github.com/qqii/mcedit-filters
+
+from pymclevel import TAG_String
+from pymclevel import TAG_List
+from pymclevel import TAG_Compound
+
+displayName = "Simple Find and Replace"
+
+inputs = (
+    ("Formatting Character", ("string", "value=%%")),
+    ("The formatting character is replaced by " + unichr(167) + ".", "label"),
+    ("Blacklist", ("string", "value=id;")),
+    ("A blacklist of names sepereated by \";\" which are not replaced.", "label"),
+    ("Find", ("string","value=")),
+    ("Replace", ("string","value=")),
+)
+
+
+# A blacklist of names for NBT tags that are not replaced
+# By default this contains "id" as editing the id of mobs may cause unwanted effects
+blacklist = []
+
+
+# The following functions finds and replaces text in string tags recursively
+# Each of them all returns true if text was replaced
+# A call should be made to replace_TAG_Compound with the entity or tile entity NBT compound tag
+def replace_TAG_String(tagString, find, replace):
+    old = tagString.value
+    tagString.value = old.replace(find, replace)
+    return not tagString.value == old
+
+def replace_TAG_List(tagList, find, replace):
+    replaced = False
+
+    for tag in tagList:
+        # TODO?: possibly make a new function with just the following code to replace it from both
+        # replace_TAG_List and replace_TAG_Compound
+        # Not done this yet as I need to come up with a good function name
+        tagType = type(tag)
+
+        if tagType == TAG_String:
+            if replace_TAG_String(tag, find, replace):
+                replaced = True
+        elif tagType == TAG_List:
+            if replace_TAG_List(tag, find, replace):
+                replaced = True
+        elif tagType == TAG_Compound:
+            if replace_TAG_Compound(tag, find, replace):
+                replaced = True
+
+    return replaced
+
+def replace_TAG_Compound(tagCompound, find, replace):
+    replaced = False
+
+    for name, tag in tagCompound.iteritems():
+        if name not in blacklist:
+            tagType = type(tag)
+
+            if tagType == TAG_String:
+                if replace_TAG_String(tag, find, replace):
+                    replaced = True
+            elif tagType == TAG_List:
+                if replace_TAG_List(tag, find, replace):
+                    replaced = True
+            elif tagType == TAG_Compound:
+                if replace_TAG_Compound(tag, find, replace):
+                    replaced = True
+
+    return replaced
+
+
+def perform(level, box, options):
+    global blacklist
+
+    formatChr = options["Formatting Character"]
+    blacklist = options["Blacklist"].split(";")
+
+    # unichr(167) is the formatting character for minecraft
+    find = options["Find"].replace(formatChr, unichr(167))
+    replace = options["Replace"].replace(formatChr, unichr(167))
+
+    for chunk, slices, point in level.getChunkSlices(box):
+        for entity in chunk.getEntitiesInBox(box) + chunk.getTileEntitiesInBox(box):
+            if replace_TAG_Compound(entity, find, replace):
+                chunk.dirty = True
