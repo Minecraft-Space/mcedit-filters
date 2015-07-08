@@ -90,23 +90,11 @@ def perform(level, box, options):
         if "&&" in find:
             print find
             regex, strFlags = find.split("&&")
-            # TODO?: Replace this with dynamic code, something like this
-            # for letter in (l for l in dir(re) if len(l) == 1):
-            #   flags |= re.__dict__[letter]
-            if "A" in strFlags:
-                flags |= re.A
-            if "I" in strFlags:
-                flags |= re.I
-            if "L" in strFlags:
-                flags |= re.L
-            if "M" in strFlags:
-                flags |= re.M
-            if "S" in strFlags:
-                flags |= re.S
-            if "U" in strFlags:
-                flags |= re.U
-            if "X" in strFlags:
-                flags |= re.X
+            print list(l for l in re.__all__ if len(l) == 1)
+            for letter in (l for l in re.__all__ if len(l) == 1):
+                if letter in strFlags:
+                    flags |= re.__dict__[letter]
+                    print letter, flags
             print strFlags, flags
         print
         print regex, flags
