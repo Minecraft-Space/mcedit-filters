@@ -1,4 +1,9 @@
-# A simple find and replace filter for mcedit
+# A simple find and replace filter for mcedit.
+
+# Credits to SethBling's original findandreplace.py which can be found here: 
+# http://sethbling.com/downloads/mcedit-filters/findandreplace/
+# This has been rewritten and uses none of the old code from the original filter
+
 # If there are any issues or enhancement requests please submit a bug report at:
 # https://github.com/qqii/mcedit-filters
 import re
