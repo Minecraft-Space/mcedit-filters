@@ -88,22 +88,16 @@ def perform(level, box, options):
         regex = find
         flags = 0
         if "&&" in find:
-            print find
             regex, strFlags = find.split("&&")
-            print list(l for l in re.__all__ if len(l) == 1)
             for letter in (l for l in re.__all__ if len(l) == 1):
                 if letter in strFlags:
                     flags |= re.__dict__[letter]
-                    print letter, flags
-            print strFlags, flags
-        print
-        print regex, flags
         compiledExpr = re.compile(regex, flags)
     else:
         compiledExpr = None
 
     for chunk, slices, point in level.getChunkSlices(box):
         for compoundTag in chunk.getEntitiesInBox(box) + chunk.getTileEntitiesInBox(box):
-            print compoundTag
+            # print compoundTag
             if replace_TAG(compoundTag, find, replace):
                 chunk.dirty = True
